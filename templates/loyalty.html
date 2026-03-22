@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Loyalty Program - Tasty Bites{% endblock %}
+
+{% block content %}
+<div class="container my-5 py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h2 class="text-center mb-4">Tasty Rewards</h2>
+            <p class="text-center text-muted mb-5">Earn points with every purchase and get discount vouchers!</p>
+            
+            <!-- Points Balance Card -->
+            <div class="card shadow-lg border-0 mb-4" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+                <div class="card-body text-white p-5">
+                    <div class="text-center">
+                        <h5 class="mb-2">Your Points Balance</h5>
+                        <h1 class="display-3 fw-bold mb-2">{{ points }}</h1>
+                        <p class="mb-0 opacity-75">points (Worth £{{ "%.2f"|format(points_value) }})</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Buy Vouchers -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h4 class="card-title mb-4">Buy Discount Vouchers</h4>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-primary">
+                                <div class="card-body text-center">
+                                    <h2 class="text-primary mb-3">15% OFF</h2>
+                                    <p class="mb-3">Discount Voucher</p>
+                                    <h5 class="mb-4">
+                                        <i class="bi bi-star-fill text-warning"></i> 1,500 points
+                                    </h5>
+                                    <form method="POST" action="{{ url_for('buy_voucher', discount=15) }}">
+                                        <button type="submit" class="btn btn-primary w-100" 
+                                                {% if points < 1500 %}disabled{% endif %}>
+                                            {% if points >= 1500 %}
+                                            Buy Voucher
+                                            {% else %}
+                                            Not Enough Points
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-success">
+                                <div class="card-body text-center">
+                                    <h2 class="text-success mb-3">20% OFF</h2>
+                                    <p class="mb-3">Discount Voucher</p>
+                                    <h5 class="mb-4">
+                                        <i class="bi bi-star-fill text-warning"></i> 2,000 points
+                                    </h5>
+                                    <form method="POST" action="{{ url_for('buy_voucher', discount=20) }}">
+                                        <button type="submit" class="btn btn-success w-100" 
+                                                {% if points < 2000 %}disabled{% endif %}>
+                                            {% if points >= 2000 %}
+                                            Buy Voucher
+                                            {% else %}
+                                            Not Enough Points
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-info-circle"></i> 
+                        <strong>How it works:</strong> Earn 1 point for every penny you spend. Use points to buy discount vouchers or redeem directly at checkout (100 points = £1).
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Active Vouchers -->
+            {% if vouchers %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h4 class="card-title mb-4">Your Active Vouchers</h4>
+                    
+                    <div class="row">
+                        {% for voucher in vouchers %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-ticket-perforated display-4 text-warning mb-2"></i>
+                                    <h3 class="text-primary">{{ voucher.discount_percent }}% OFF</h3>
+                                    <small class="text-muted">Created: {{ voucher.created_at[:10] }}</small>
+                                    <p class="mt-2 mb-0">
+                                        <span class="badge bg-success">Ready to Use</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Recent Transactions -->
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="card-title mb-4">Recent Activity</h4>
+                    
+                    {% if transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Type</th>
+                                    <th class="text-end">Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trans in transactions %}
+                                <tr>
+                                    <td>{{ trans.created_at[:10] }}</td>
+                                    <td>{{ trans.description }}</td>
+                                    <td>
+                                        {% if trans.transaction_type == 'earned' %}
+                                        <span class="badge bg-success">Earned</span>
+                                        {% else %}
+                                        <span class="badge bg-info">Redeemed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if trans.points > 0 %}
+                                        <span class="text-success fw-bold">+{{ trans.points }}</span>
+                                        {% else %}
+                                        <span class="text-danger fw-bold">{{ trans.points }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-clock-history display-4 text-muted"></i>
+                        <p class="mt-3 text-muted">No transactions yet. Start shopping to earn points!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{{ url_for('catalog') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-basket"></i> Start Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - Tasty Bites{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-detail {
+        padding: 60px 0;
+    }
+    
+    .product-image-large {
+        width: 100%;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .product-info {
+        padding: 20px;
+    }
+    
+    .price-large {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+    
+    .quantity-control {
+        display: inline-flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .quantity-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid var(--primary-color);
+        background: white;
+        color: var(--primary-color);
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .quantity-btn:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    .quantity-input {
+        width: 60px;
+        text-align: center;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        padding: 8px;
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-detail">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('catalog') }}">Menu</a></li>
+                <li class="breadcrumb-item active">{{ product.name }}</li>
+            </ol>
+        </nav>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="row mt-4">
+            <div class="col-md-6 mb-4">
+                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image-large">
+            </div>
+            <div class="col-md-6">
+                <div class="product-info">
+                    <span class="badge bg-primary mb-3">{{ product.category }}</span>
+                    <h1 class="display-5 fw-bold mb-3">{{ product.name }}</h1>
+                    <p class="lead text-muted mb-4">{{ product.description }}</p>
+                    
+                    <div class="mb-4">
+                        <span class="price-large">£{{ "%.2f"|format(product.price) }}</span>
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Quantity:</label>
+                            <div class="quantity-control">
+                                <button type="button" class="quantity-btn" onclick="decreaseQty()">−</button>
+                                <input type="number" id="quantity" name="quantity" class="quantity-input" value="1" min="1" max="99">
+                                <button type="button" class="quantity-btn" onclick="increaseQty()">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-block">
+                            {% if session.get('user_id') %}
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="bi bi-cart-plus"></i> Add to Cart
+                            </button>
+                            {% else %}
+                            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg px-5">
+                                <i class="bi bi-box-arrow-in-right"></i> Login to Add to Cart
+                            </a>
+                            {% endif %}
+                            <a href="{{ url_for('catalog') }}" class="btn btn-outline-secondary btn-lg px-5">
+                                <i class="bi bi-arrow-left"></i> Back to Menu
+                            </a>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="fw-bold"><i class="bi bi-check-circle text-success"></i> In Stock</h6>
+                        <p class="mb-0 small text-muted">Available for immediate delivery</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function increaseQty() {
+        const input = document.getElementById('quantity');
+        const currentValue = parseInt(input.value);
+        if (currentValue < 99) {
+            input.value = currentValue + 1;
+        }
+    }
+    
+    function decreaseQty() {
+        const input = document.getElementById('quantity');
+        const currentValue = parseInt(input.value);
+        if (currentValue > 1) {
+            input.value = currentValue - 1;
+        }
+    }
+</script>
+{% endblock %}

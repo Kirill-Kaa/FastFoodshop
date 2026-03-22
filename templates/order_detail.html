@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Order #{{ order.id }} - Tasty Bites{% endblock %}
+
+{% block content %}
+<div class="container my-5 py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                <h2 class="mt-3">Order Confirmed!</h2>
+                <p class="text-muted">Thank you for your order. We'll deliver it soon!</p>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4>Order #{{ order.id }}</h4>
+                        <span class="badge bg-warning text-dark">{{ order.status|upper }}</span>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Order Date:</strong></p>
+                            <p class="text-muted">{{ order.created_at }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Total Amount:</strong></p>
+                            <p class="text-primary fw-bold fs-5">£{{ "%.2f"|format(order.total_amount) }}</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h5 class="mb-3">Delivery Information</h5>
+                    <p class="mb-1"><strong>Address:</strong></p>
+                    <p class="text-muted">{{ order.delivery_address }}</p>
+                    <p class="text-muted">{{ order.delivery_city }}, {{ order.delivery_postal_code }}</p>
+                    <p class="mb-1"><strong>Phone:</strong></p>
+                    <p class="text-muted">{{ order.phone }}</p>
+
+                    {% if order.notes %}
+                    <p class="mb-1"><strong>Delivery Notes:</strong></p>
+                    <p class="text-muted">{{ order.notes }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if order.points_redeemed > 0 or order.points_earned > 0 %}
+            <hr>
+
+            <h5 class="mb-3">Loyalty Points</h5>
+
+            {% if order.points_redeemed > 0 %}
+            <div class="d-flex justify-content-between mb-2">
+                <span><i class="bi bi-star-fill text-warning"></i> Points Redeemed:</span>
+                <span class="text-danger">-{{ order.points_redeemed }} points (£{{ "%.2f"|format(order.discount_amount)
+                    }})</span>
+            </div>
+            {% endif %}
+
+            {% if order.points_earned > 0 %}
+            <div class="d-flex justify-content-between mb-2">
+                <span><i class="bi bi-star-fill text-warning"></i> Points Earned:</span>
+                <span class="text-success">+{{ order.points_earned }} points</span>
+            </div>
+            {% endif %}
+            {% endif %}
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Order Items</h5>
+
+                    {% for item in items %}
+                    <div
+                        class="d-flex justify-content-between align-items-center mb-3 pb-3 {% if not loop.last %}border-bottom{% endif %}">
+                        <div>
+                            <h6 class="mb-1">{{ item.product_name }}</h6>
+                            <small class="text-muted">£{{ "%.2f"|format(item.price) }} × {{ item.quantity }}</small>
+                        </div>
+                        <span class="fw-bold">£{{ "%.2f"|format(item.price * item.quantity) }}</span>
+                    </div>
+                    {% endfor %}
+
+                    <hr>
+
+                    {% if order.discount_amount > 0 %}
+                    <div class="d-flex justify-content-between text-muted">
+                        <span>Original Total:</span>
+                        <span>£{{ "%.2f"|format(order.total_amount) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-success mb-2">
+                        <span>Discount:</span>
+                        <span>-£{{ "%.2f"|format(order.discount_amount) }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between">
+                        <h5>{% if order.discount_amount > 0 %}Final {% endif %}Total:</h5>
+                        <h5 class="text-primary">£{{ "%.2f"|format(order.final_amount) }}</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{{ url_for('catalog') }}" class="btn btn-primary">
+                    <i class="bi bi-basket"></i> Continue Shopping
+                </a>
+                <a href="{{ url_for('account') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-person"></i> View All Orders
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - Tasty Bites{% endblock %}
+
+{% block content %}
+<div class="container my-5 py-5">
+    <h2 class="mb-4">Shopping Cart</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {% if cart_items %}
+    <div class="row">
+        <div class="col-lg-8">
+            {% for item in cart_items %}
+            <div class="card mb-3 shadow-sm">
+                <div class="row g-0">
+                    <div class="col-md-3">
+                        <img src="{{ item.image_url }}" class="img-fluid rounded-start" alt="{{ item.name }}"
+                            style="height: 150px; object-fit: cover; width: 100%;">
+                    </div>
+                    <div class="col-md-9">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title">{{ item.name }}</h5>
+                                    <p class="text-muted mb-2">£{{ "%.2f"|format(item.price) }} each</p>
+                                </div>
+                                <a href="{{ url_for('remove_from_cart', cart_id=item.id) }}"
+                                    class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+
+                            <form method="POST" action="{{ url_for('update_cart', cart_id=item.id) }}"
+                                class="d-inline-flex align-items-center gap-2">
+                                <label class="me-2">Quantity:</label>
+                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="99"
+                                    class="form-control form-control-sm" style="width: 80px;">
+                                <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                            </form>
+
+                            <p class="mt-2 mb-0">
+                                <strong>Subtotal: £{{ "%.2f"|format(item.price * item.quantity) }}</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="mt-3">
+                <a href="{{ url_for('catalog') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Continue Shopping
+                </a>
+                <a href="{{ url_for('clear_cart') }}" class="btn btn-outline-danger"
+                    onclick="return confirm('Are you sure you want to clear your cart?')">
+                    <i class="bi bi-trash"></i> Clear Cart
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Order Summary</h5>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Items:</span>
+                        <span>{{ cart_items|length }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Total:</span>
+                        <strong class="text-primary" style="font-size: 1.5rem;">£{{ "%.2f"|format(total) }}</strong>
+                    </div>
+                    <a href="{{ url_for('checkout') }}" class="btn btn-primary w-100 py-2">
+                        <i class="bi bi-credit-card"></i> Proceed to Checkout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-cart-x display-1 text-muted"></i>
+        <h3 class="mt-3">Your cart is empty</h3>
+        <p class="text-muted">Add some delicious items to get started!</p>
+        <a href="{{ url_for('catalog') }}" class="btn btn-primary mt-3">
+            <i class="bi bi-basket"></i> Browse Menu
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

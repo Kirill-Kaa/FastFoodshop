@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}About Us - Tasty Bites{% endblock %}
+
+{% block extra_css %}
+<style>
+    .about-hero {
+        background: linear-gradient(135deg, rgba(255,107,53,0.9), rgba(247,147,30,0.9)),
+                    url('https://images.unsplash.com/photo-1566738780863-f9608f88f3a9?w=1200') center/cover;
+        color: white;
+        padding: 80px 0;
+        text-align: center;
+    }
+    
+    .feature-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    
+    .producer-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        height: 100%;
+    }
+    
+    .producer-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    
+    .producer-img {
+        height: 200px;
+        object-fit: cover;
+        width: 100%;
+        border-radius: 10px;
+    }
+    
+    .benefit-card {
+        background: #f8f9fa;
+        border-left: 4px solid var(--primary-color);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="about-hero">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-3">About Tasty Bites</h1>
+        <p class="lead">Supporting Local Producers, Delivering Fresh Quality</p>
+    </div>
+</div>
+
+<!-- Our Story -->
+<div class="container my-5 py-5">
+    <div class="row align-items-center mb-5">
+        <div class="col-md-6 mb-4">
+            <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=600" 
+                 alt="Fresh ingredients" class="img-fluid rounded shadow">
+        </div>
+        <div class="col-md-6">
+            <h2 class="mb-4">Our Story</h2>
+            <p class="lead">
+                Tasty Bites was born from a simple idea: great food starts with great ingredients.
+            </p>
+            <p>
+                We believe in the power of local communities and sustainable food systems. That's why we partner 
+                exclusively with local farmers, producers, and artisans who share our commitment to quality and 
+                sustainability.
+            </p>
+            <p>
+                Every meal we prepare tells a story - of dedicated farmers, passionate producers, and the rich 
+                agricultural heritage of our region. When you order from Tasty Bites, you're not just getting 
+                a meal; you're supporting a network of local businesses and sustainable practices.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Our Local Producers -->
+<div class="bg-light py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Meet Our Local Producers</h2>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card producer-card shadow-sm border-0">
+                    <img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=400" 
+                         class="card-img-top producer-img" alt="Green Valley Farm">
+                    <div class="card-body">
+                        <h5 class="card-title">Green Valley Farm</h5>
+                        <p class="text-muted mb-2"><i class="bi bi-geo-alt"></i> 15 miles away</p>
+                        <p class="card-text">
+                            Organic vegetables and salad greens grown using sustainable farming methods. 
+                            Family-run for three generations, they practice crop rotation and natural pest control.
+                        </p>
+                        <div class="mt-3">
+                            <span class="badge bg-success me-1">Organic</span>
+                            <span class="badge bg-info">Pesticide-Free</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card producer-card shadow-sm border-0">
+                    <img src="https://images.unsplash.com/photo-1513127737-ee7052f8e315?w=400" 
+                         class="card-img-top producer-img" alt="Sunrise Bakery">
+                    <div class="card-body">
+                        <h5 class="card-title">Sunrise Artisan Bakery</h5>
+                        <p class="text-muted mb-2"><i class="bi bi-geo-alt"></i> 8 miles away</p>
+                        <p class="card-text">
+                            Fresh bread, pizza dough, and pastries baked daily using traditional methods 
+                            and locally-milled flour. No preservatives, just time-honored techniques.
+                        </p>
+                        <div class="mt-3">
+                            <span class="badge bg-warning text-dark me-1">Handcrafted</span>
+                            <span class="badge bg-primary">Fresh Daily</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card producer-card shadow-sm border-0">
+                    <img src="https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400" 
+                         class="card-img-top producer-img" alt="Heritage Meats">
+                    <div class="card-body">
+                        <h5 class="card-title">Heritage Meats Co.</h5>
+                        <p class="text-muted mb-2"><i class="bi bi-geo-alt"></i> 22 miles away</p>
+                        <p class="card-text">
+                            Ethically-raised beef, chicken, and pork from free-range animals. 
+                            They prioritize animal welfare and environmental stewardship in everything they do.
+                        </p>
+                        <div class="mt-3">
+                            <span class="badge bg-success me-1">Free-Range</span>
+                            <span class="badge bg-danger">Grass-Fed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-4 mb-4">
+                <div class="card producer-card shadow-sm border-0">
+                    <img src="https://images.unsplash.com/photo-1486890598084-3673ba1808c1?w=400" 
+                         class="card-img-top producer-img" alt="Dairy Farm">
+                    <div class="card-body">
+                        <h5 class="card-title">Meadow Fresh Dairy</h5>
+                        <p class="text-muted mb-2"><i class="bi bi-geo-alt"></i> 12 miles away</p>
+                        <p class="card-text">
+                            Award-winning cheese and dairy products from pasture-raised cows. 
+                            Their sustainable practices ensure happy animals and superior quality products.
+                        </p>
+                        <div class="mt-3">
+                            <span class="badge bg-info me-1">Pasture-Raised</span>
+                            <span class="badge bg-warning text-dark">Award-Winning</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card producer-card shadow-sm border-0">
+                    <img src="https://images.unsplash.com/photo-1592921870789-04563d55041c?w=400" 
+                         class="card-img-top producer-img" alt="Herb Garden">
+                    <div class="card-body">
+                        <h5 class="card-title">Garden Fresh Herbs</h5>
+                        <p class="text-muted mb-2"><i class="bi bi-geo-alt"></i> 6 miles away</p>
+                        <p class="card-text">
+                            Fresh herbs and spices grown in greenhouses year-round. 
+                            They use hydroponics and natural growing methods to ensure peak flavor and freshness.
+                        </p>
+                        <div class="mt-3">
+                            <span class="badge bg-success me-1">Year-Round</span>
+                            <span class="badge bg-primary">Hydroponic</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card producer-card shadow-sm border-0">
+                    <img src="https://images.unsplash.com/photo-1587049352846-4a222e784963?w=400" 
+                         class="card-img-top producer-img" alt="Sauce Maker">
+                    <div class="card-body">
+                        <h5 class="card-title">Maria's Kitchen</h5>
+                        <p class="text-muted mb-2"><i class="bi bi-geo-alt"></i> 10 miles away</p>
+                        <p class="card-text">
+                            Homemade pasta sauces, dressings, and condiments using traditional family recipes. 
+                            Small-batch production ensures authentic flavors in every jar.
+                        </p>
+                        <div class="mt-3">
+                            <span class="badge bg-danger me-1">Small-Batch</span>
+                            <span class="badge bg-warning text-dark">Traditional</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Benefits of Buying Local -->
+<div class="container my-5 py-5">
+    <h2 class="text-center mb-5">Why Buy Local?</h2>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="benefit-card">
+                <h4><i class="bi bi-leaf text-success"></i> Fresher & Tastier</h4>
+                <p class="mb-0">
+                    Local food travels shorter distances, meaning it's harvested at peak ripeness and 
+                    reaches your table faster. This means better flavor, more nutrients, and superior quality.
+                </p>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="benefit-card">
+                <h4><i class="bi bi-people text-primary"></i> Supports Community</h4>
+                <p class="mb-0">
+                    When you buy local, money stays in the community. Local farmers and producers reinvest 
+                    in the area, creating jobs and strengthening the local economy.
+                </p>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="benefit-card">
+                <h4><i class="bi bi-globe text-info"></i> Better for Environment</h4>
+                <p class="mb-0">
+                    Local food requires less transportation, reducing carbon emissions. Small-scale local 
+                    farms often use sustainable practices that protect soil, water, and biodiversity.
+                </p>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="benefit-card">
+                <h4><i class="bi bi-heart text-danger"></i> Know Your Source</h4>
+                <p class="mb-0">
+                    We know exactly where our food comes from and how it's produced. This transparency 
+                    ensures quality, safety, and ethical practices at every step.
+                </p>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="benefit-card">
+                <h4><i class="bi bi-graph-up text-warning"></i> Preserves Farmland</h4>
+                <p class="mb-0">
+                    Supporting local farmers helps keep farms financially viable, preserving agricultural 
+                    land and green spaces for future generations.
+                </p>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="benefit-card">
+                <h4><i class="bi bi-star text-primary"></i> Seasonal Variety</h4>
+                <p class="mb-0">
+                    Eating locally means eating seasonally, which provides natural variety throughout 
+                    the year and connects us to the rhythm of nature.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Our Commitment -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h2 class="mb-4">Our Commitment to You</h2>
+                <p class="lead mb-4">
+                    At Tasty Bites, we're committed to transparency, quality, and sustainability. 
+                    Every ingredient is sourced within a 30-mile radius, ensuring freshness while 
+                    reducing our environmental impact.
+                </p>
+                
+                <div class="row mt-5">
+                    <div class="col-md-4 mb-3">
+                        <i class="bi bi-check-circle-fill feature-icon"></i>
+                        <h5>100% Local</h5>
+                        <p class="text-muted">All ingredients sourced locally</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <i class="bi bi-recycle feature-icon"></i>
+                        <h5>Sustainable</h5>
+                        <p class="text-muted">Eco-friendly packaging & practices</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <i class="bi bi-award feature-icon"></i>
+                        <h5>Quality First</h5>
+                        <p class="text-muted">Only the finest ingredients</p>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="{{ url_for('catalog') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-basket"></i> Support Local - Order Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
