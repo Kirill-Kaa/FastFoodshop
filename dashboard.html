@@ -1,0 +1,541 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Tasty Bites{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 40px 0;
+    }
+
+    .stat-card {
+        border-left: 4px solid var(--primary-color);
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-icon {
+        font-size: 2.5rem;
+        opacity: 0.8;
+    }
+
+    .product-img-small {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .status-badge {
+        font-size: 0.85rem;
+        padding: 0.35rem 0.65rem;
+    }
+
+    .nav-tabs .nav-link {
+        color: #666;
+        border: none;
+        border-bottom: 3px solid transparent;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: var(--primary-color);
+        border-bottom: 3px solid var(--primary-color);
+        background: transparent;
+    }
+
+    .table-actions {
+        white-space: nowrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="dashboard-header">
+    <div class="container">
+        <h1 class="mb-2">Dashboard</h1>
+        <p class="mb-0 opacity-75">Manage products, orders, and inventory</p>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="container mt-3">
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- Statistics -->
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Total Orders</p>
+                            <h3 class="mb-0">{{ total_orders }}</h3>
+                        </div>
+                        <i class="bi bi-basket stat-icon text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">In Stock</p>
+                            <h3 class="mb-0">{{ in_stock_products }}</h3>
+                        </div>
+                        <i class="bi bi-check-circle stat-icon text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Out of Stock</p>
+                            <h3 class="mb-0">{{ out_of_stock_products }}</h3>
+                        </div>
+                        <i class="bi bi-x-circle stat-icon text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Pending Revenue</p>
+                            <h3 class="mb-0">£{{ "%.2f"|format(pending_revenue) }}</h3>
+                        </div>
+                        <i class="bi bi-currency-pound stat-icon text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="container mb-5">
+    <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products"
+                type="button">
+                <i class="bi bi-box-seam"></i> Products ({{ products|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button">
+                <i class="bi bi-receipt"></i> Orders ({{ orders|length }})
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="dashboardTabContent">
+        <!-- Products Tab -->
+        <div class="tab-pane fade show active" id="products" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Product Management</h5>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                            <i class="bi bi-plus-circle"></i> Add New Product
+                        </button>
+                    </div>
+                    <!-- Add Product Modal -->
+                    <div class="modal fade" id="addProductModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Add New Product</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form method="POST" action="{{ url_for('add_product') }}" enctype="multipart/form-data">
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Product Name *</label>
+                                                    <input type="text" class="form-control" name="name" required>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label">Description *</label>
+                                                    <textarea class="form-control" name="description" rows="3"
+                                                        required></textarea>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Price (£) *</label>
+                                                        <input type="number" step="0.01" class="form-control"
+                                                            name="price" required>
+                                                    </div>
+
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Category *</label>
+                                                        <select class="form-select" name="category" required>
+                                                            <option value="">Select category...</option>
+                                                            <option value="Pizza">Pizza</option>
+                                                            <option value="Burgers">Burgers</option>
+                                                            <option value="Pasta">Pasta</option>
+                                                            <option value="Salads">Salads</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label">Stock Status *</label>
+                                                    <select class="form-select" name="in_stock" required>
+                                                        <option value="1" selected>In Stock</option>
+                                                        <option value="0">Out of Stock</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Preview</label>
+                                                    <img src="https://via.placeholder.com/400?text=No+Image"
+                                                        alt="Preview" class="img-fluid rounded mb-2" id="previewNew">
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label">Upload Image</label>
+                                                    <input type="file" class="form-control" name="product_image"
+                                                        accept="image/*" onchange="previewImage(event, 'New')">
+                                                    <small class="text-muted">JPG, PNG, GIF, WEBP (max 5MB)</small>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label">Or Use Image URL</label>
+                                                    <input type="url" class="form-control" name="image_url"
+                                                        placeholder="https://example.com/image.jpg">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-plus-circle"></i> Add Product
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in products %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ product.image_url }}" alt="{{ product.name }}"
+                                                class="product-img-small me-3">
+                                            <div>
+                                                <div class="fw-bold">{{ product.name }}</div>
+                                                <small class="text-muted">{{ product.description[:50] }}...</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ product.category }}</span>
+                                    </td>
+                                    <td class="fw-bold">£{{ "%.2f"|format(product.price) }}</td>
+                                    <td>
+                                        {% if product.in_stock %}
+                                        <span class="badge bg-success status-badge">In Stock</span>
+                                        {% else %}
+                                        <span class="badge bg-danger status-badge">Out of Stock</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="table-actions">
+                                        <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal"
+                                            data-bs-target="#editModal{{ product.id }}">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </button>
+
+                                        {% if product.in_stock %}
+                                        <a href="{{ url_for('toggle_stock', product_id=product.id, status=0) }}"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Mark as out of stock?')">
+                                            <i class="bi bi-x-circle"></i> Out
+                                        </a>
+                                        {% else %}
+                                        <a href="{{ url_for('toggle_stock', product_id=product.id, status=1) }}"
+                                            class="btn btn-sm btn-outline-success"
+                                            onclick="return confirm('Mark as in stock?')">
+                                            <i class="bi bi-check-circle"></i> In
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+
+                                <!-- Edit Product Modal -->
+                                <div class="modal fade" id="editModal{{ product.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Edit Product</h5>
+                                                <button type="button" class="btn-close"
+                                                    data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form method="POST"
+                                                action="{{ url_for('update_product', product_id=product.id) }}"
+                                                enctype="multipart/form-data">
+                                                <div class="modal-body">
+                                                    <div class="row">
+                                                        <div class="col-md-8">
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Product Name</label>
+                                                                <input type="text" class="form-control" name="name"
+                                                                    value="{{ product.name }}" required>
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Description</label>
+                                                                <textarea class="form-control" name="description"
+                                                                    rows="3"
+                                                                    required>{{ product.description }}</textarea>
+                                                            </div>
+
+                                                            <div class="row">
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label class="form-label">Price (£)</label>
+                                                                    <input type="number" step="0.01"
+                                                                        class="form-control" name="price"
+                                                                        value="{{ product.price }}" required>
+                                                                </div>
+
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label class="form-label">Category</label>
+                                                                    <select class="form-select" name="category"
+                                                                        required>
+                                                                        <option value="Pizza" {% if
+                                                                            product.category=='Pizza' %}selected{% endif
+                                                                            %}>Pizza</option>
+                                                                        <option value="Burgers" {% if
+                                                                            product.category=='Burgers' %}selected{%
+                                                                            endif %}>Burgers</option>
+                                                                        <option value="Pasta" {% if
+                                                                            product.category=='Pasta' %}selected{% endif
+                                                                            %}>Pasta</option>
+                                                                        <option value="Salads" {% if
+                                                                            product.category=='Salads' %}selected{%
+                                                                            endif %}>Salads</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Stock Status</label>
+                                                                <select class="form-select" name="in_stock" required>
+                                                                    <option value="1" {% if product.in_stock
+                                                                        %}selected{% endif %}>In Stock</option>
+                                                                    <option value="0" {% if not product.in_stock
+                                                                        %}selected{% endif %}>Out of Stock</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-md-4">
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Current Image</label>
+                                                                <img src="{{ product.image_url }}"
+                                                                    alt="{{ product.name }}"
+                                                                    class="img-fluid rounded mb-2"
+                                                                    id="preview{{ product.id }}">
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Upload New Image</label>
+                                                                <input type="file" class="form-control"
+                                                                    name="product_image" accept="image/*"
+                                                                    onchange="previewImage(event, '{{ product.id }}')">
+                                                                <small class="text-muted">JPG, PNG, GIF, WEBP (max
+                                                                    5MB)</small>
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Or Use Image URL</label>
+                                                                <input type="url" class="form-control" name="image_url"
+                                                                    placeholder="https://example.com/image.jpg">
+                                                                <small class="text-muted">Leave blank to keep current
+                                                                    image</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="bi bi-save"></i> Save Changes
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Tab -->
+        <div class="tab-pane fade" id="orders" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Order Management</h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td class="fw-bold">#{{ order.id }}</td>
+                                    <td>
+                                        <div>{{ order.username }}</div>
+                                        <small class="text-muted">{{ order.email }}</small>
+                                    </td>
+                                    <td>
+                                        <div>{{ order.created_at[:10] }}</div>
+                                        <small class="text-muted">{{ order.created_at[11:16] }}</small>
+                                    </td>
+                                    <td>{{ order.item_count }} items</td>
+                                    <td class="fw-bold">£{{ "%.2f"|format(order.final_amount) }}</td>
+                                    <td>
+                                        {% if order.status == 'pending' %}
+                                        <span class="badge bg-warning text-dark status-badge">Pending</span>
+                                        {% elif order.status == 'confirmed' %}
+                                        <span class="badge bg-info status-badge">Confirmed</span>
+                                        {% elif order.status == 'preparing' %}
+                                        <span class="badge bg-primary status-badge">Preparing</span>
+                                        {% elif order.status == 'delivered' %}
+                                        <span class="badge bg-success status-badge">Delivered</span>
+                                        {% elif order.status == 'cancelled' %}
+                                        <span class="badge bg-danger status-badge">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="table-actions">
+                                        <a href="{{ url_for('order_detail', order_id=order.id) }}"
+                                            class="btn btn-sm btn-outline-primary me-1">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+
+                                        <div class="btn-group" role="group">
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                                data-bs-toggle="dropdown">
+                                                Status
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item"
+                                                        href="{{ url_for('update_order_status', order_id=order.id, status='confirmed') }}">Confirmed</a>
+                                                </li>
+                                                <li><a class="dropdown-item"
+                                                        href="{{ url_for('update_order_status', order_id=order.id, status='preparing') }}">Preparing</a>
+                                                </li>
+                                                <li><a class="dropdown-item"
+                                                        href="{{ url_for('update_order_status', order_id=order.id, status='delivered') }}">Delivered</a>
+                                                </li>
+                                                <li>
+                                                    <hr class="dropdown-divider">
+                                                </li>
+                                                <li><a class="dropdown-item text-danger"
+                                                        href="{{ url_for('update_order_status', order_id=order.id, status='cancelled') }}">Cancel</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function previewImage(event, productId) {
+        const file = event.target.files[0];
+        if (file) {
+            // Check file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image size must be less than 5MB');
+                event.target.value = '';
+                return;
+            }
+
+            // Check file type
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                alert('Please upload a valid image file (JPG, PNG, GIF, or WEBP)');
+                event.target.value = '';
+                return;
+            }
+
+            // Preview image
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('preview' + productId).src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+{% endblock %}

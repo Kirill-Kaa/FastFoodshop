@@ -2,8 +2,10 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import sqlite3
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from functools import wraps
 from datetime import datetime
+from PIL import Image
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production'
@@ -13,6 +15,39 @@ DATABASE = 'food_store.db'
 # Loyalty program settings
 POINTS_PER_PENNY = 1  # 1 penny = 1 point
 PENNIES_PER_POINT = 1  # 1 point = 1 penny when redeeming
+
+UPLOAD_FOLDER = 'static/uploads/products'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+MAX_IMAGE_SIZE = (800, 800)  # Max dimensions for uploaded images
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+def allowed_file(filename):
+    """Check if file extension is allowed"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def process_image(file, product_id):
+    """Process and save uploaded image"""
+    if file and allowed_file(file.filename):
+        # Generate secure filename
+        ext = file.filename.rsplit('.', 1)[1].lower()
+        filename = f"product_{product_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.{ext}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        # Open and resize image
+        img = Image.open(file)
+        img.thumbnail(MAX_IMAGE_SIZE, Image.Resampling.LANCZOS)
+        
+        # Convert RGBA to RGB if necessary
+        if img.mode == 'RGBA':
+            img = img.convert('RGB')
+        
+        # Save image
+        img.save(filepath, quality=85, optimize=True)
+        
+        # Return the URL path
+        return f"/static/uploads/products/{filename}"
+    
+    return None
 
 def get_db():
     """Get database connection"""
@@ -846,15 +881,35 @@ def update_product(product_id):
     conn = get_db()
     cursor = conn.cursor()
     
-    cursor.execute('''
-        UPDATE products 
-        SET name = ?, description = ?, price = ?, category = ?, in_stock = ?
-        WHERE id = ?
-    ''', (name, description, price, category, in_stock, product_id))
+    # Handle image upload
+    image_url = None
+    if 'product_image' in request.files:
+        file = request.files['product_image']
+        if file and file.filename != '':
+            image_url = process_image(file, product_id)
+    
+    # Use custom URL if provided
+    custom_url = request.form.get('image_url')
+    if custom_url and custom_url.strip():
+        image_url = custom_url.strip()
+    
+    # Update product
+    if image_url:
+        cursor.execute('''
+            UPDATE products 
+            SET name = ?, description = ?, price = ?, category = ?, in_stock = ?, image_url = ?
+            WHERE id = ?
+        ''', (name, description, price, category, in_stock, image_url, product_id))
+    else:
+        cursor.execute('''
+            UPDATE products 
+            SET name = ?, description = ?, price = ?, category = ?, in_stock = ?
+            WHERE id = ?
+        ''', (name, description, price, category, in_stock, product_id))
     
     conn.commit()
     conn.close()
-    
+
     flash('Product updated successfully!', 'success')
     return redirect(url_for('dashboard'))
 
@@ -886,6 +941,50 @@ def update_order_status(order_id, status):
     conn.close()
     
     flash('Order status updated!', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/dashboard/product/add', methods=['POST'])
+@login_required
+def add_product():
+    """Add new product"""
+    name = request.form.get('name')
+    description = request.form.get('description')
+    price = float(request.form.get('price'))
+    category = request.form.get('category')
+    in_stock = int(request.form.get('in_stock', 1))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Create product first to get ID
+    cursor.execute('''
+        INSERT INTO products (name, description, price, category, in_stock, image_url)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (name, description, price, category, in_stock, 'https://via.placeholder.com/400'))
+    
+    product_id = cursor.lastrowid
+    
+    # Handle image upload
+    image_url = None
+    if 'product_image' in request.files:
+        file = request.files['product_image']
+        if file and file.filename != '':
+            image_url = process_image(file, product_id)
+    
+    # Use custom URL if provided
+    custom_url = request.form.get('image_url')
+    if custom_url and custom_url.strip():
+        image_url = custom_url.strip()
+    
+    # Update with actual image URL
+    if image_url:
+        cursor.execute('UPDATE products SET image_url = ? WHERE id = ?', 
+                      (image_url, product_id))
+    
+    conn.commit()
+    conn.close()
+    
+    flash('Product added successfully!', 'success')
     return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
